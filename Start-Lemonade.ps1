@@ -4,12 +4,12 @@
 Implements a lemonade stand simulation.
 
 .DESCRIPTION
-You've decided to run a lemonade stand each Saturday for the Summer.
+You've decided to run a lemonade stand on each Saturday of the Summer.
 Purchase your inventory of cups, lemons and sugar from the grocery store.
 Price your lemonade based on the cost of ingredients, weather forecast, etc.
 Lowering your prices will sell more lemonade but return less on each sale.
 You might be able to sell more lemonade on hot days at higher prices.
-Try to maximize your profits before the end of Summer.
+Try to maximize your profits before the Summer ends.
 
 Currency units are selected based on the current computer locale.
 
@@ -210,6 +210,7 @@ while ($weeks.current -le $weeks.total)
                "$($forecast[$temperature.forecast][1])";
 
   # Calculate the potential sales as a percentage of the maximum value
+  # (lower temperature = fewer sales, severe weather = fewer sales)
   $potential = [Math]::Floor($weeks.sales * `
                              ($temperature.value / 100) * `
                              $($forecast[$temperature.forecast][0]));
@@ -266,7 +267,7 @@ while ($weeks.current -le $weeks.total)
     "$($lines[$i].PadRight($width))  $($buffer[$i])";
   }
 
-  # Read the number of cup boxs to purchase
+  # Read the number of cup boxes to purchase
   [int]$newcups = -1;
   while ($newcups -lt 0)
   {
@@ -381,6 +382,7 @@ while ($weeks.current -le $weeks.total)
   "  Setting the price at $($price.ToString("C2"))";
 
   # Calculate the weekly sales based on price and lowest inventory level
+  # (higher markup price = fewer sales, limited by the inventory on-hand)
   $sales = [Math]::Floor($potential * ($unit / $price));
   $set   = @($potential, $sales, `
              $inventory.cups, $inventory.lemons, $inventory.sugar);
@@ -413,7 +415,7 @@ while ($weeks.current -le $weeks.total)
 
   # Display the calculated sales information
   Clear-Host;
-  "`nSales Results Week #$($weeks.current)";
+  "`nSales Results Week #$($weeks.current) of $($weeks.total)";
   "  Unit Cost (per serving):  $($unit.ToString("C2"))";
   "  Actual Price:             $($price.ToString("C2"))";
   "  Profit Margin:            $($margin.ToString("C2"))";
