@@ -1,5 +1,5 @@
 # Lemonade-Stand
-## Copyright (c) 2022 TigerPointe Software, LLC
+## Copyright (c) 2023 TigerPointe Software, LLC
 
 ## Introduction
 
