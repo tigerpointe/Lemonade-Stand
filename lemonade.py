@@ -287,7 +287,7 @@ def start_lemonade(celsius=False, nowait=False):
         # Calculate the unit cost
         unit = cups.unit + lemons.unit + sugar.unit
         buffer[10] = "           " + \
-                     locale.currency(unit) + \
+                     locale.currency(unit, grouping=True) + \
                      " cost per serving"
 
         # Display the current inventory
