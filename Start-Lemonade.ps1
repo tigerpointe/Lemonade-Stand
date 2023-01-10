@@ -93,10 +93,6 @@ param
 
 )
 
-# Define the temperature unit symbols
-$FahrenheitUnit = "ºF";
-$CelsiusUnit    = "ºC";
-
 # Define the ASCII art (original image by Scott S.)
 $ascii = @"
  .===================.
@@ -123,6 +119,10 @@ $ascii = @"
 $ascii = $ascii.Replace("`r",""); # Standardize the CrLf to use the Lf only
 $lines = $ascii.Split("`n");      # Split the ASCII image on the Lf
 $width = $lines[$lines.Count - 1].Length; # Longest line of the ASCII image
+
+# Define the temperature unit symbols
+$FahrenheitUnit = "ºF";
+$CelsiusUnit    = "ºC";
 
 # Inventory data (contains the item levels)
 $inventory = @{};
@@ -260,6 +260,7 @@ while ($weeks.current -le $weeks.total)
   $buffer[16] = "";
   $buffer[17] = "My Cash:    $($inventory.cash.ToString("C2"))";
   $buffer[18] = "Gain/Loss:  $($gainloss.ToString("C2"))";
+  $buffer[19] = "";
 
   # Output the display buffer (combines the ASCII art with the text messages)
   for ($i = 0; $i -lt $buffer.Count; $i++)
