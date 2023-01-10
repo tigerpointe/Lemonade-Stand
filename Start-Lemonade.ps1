@@ -388,9 +388,9 @@ while ($weeks.current -le $weeks.total)
   $set   = @($potential, $sales, `
              $inventory.cups, $inventory.lemons, $inventory.sugar);
   $sales = ($set | Sort-Object -Descending | Select -Last 1); # lowest value
-  $margin           = $price - $unit;
-  $gross            = $sales * $price;
-  $net              = $sales * $margin;
+  $margin = $price - $unit;
+  $gross  = $sales * $price;
+  $net    = $sales * $margin;
 
   # Add a new row to the summary
   $weeks.summary += @{ sales = $sales; price = $price; };
