@@ -1,11 +1,11 @@
 # Lemonade-Stand
-## Copyright (c) 2023 TigerPointe Software, LLC
+## Copyright (c) 2022 TigerPointe Software, LLC
 
 ## Introduction
 
 Nothing makes me happier than to take a powerful administrative tool, like PowerShell, and completely misuse it for the purposes of entertainment.
 
-You've decided to run a lemonade stand each Saturday for the Summer.
+You've decided to run a lemonade stand on each Saturday of the Summer.
 
 Purchase your inventory of cups, lemons and sugar from the grocery store.
 
@@ -15,7 +15,7 @@ Lowering your prices will sell more lemonade but return less on each sale.
 
 You might be able to sell more lemonade on hot days at higher prices.
 
-Try to maximize your profits before the end of Summer.
+Try to maximize your profits before the Summer ends.
 
 Currency units are selected based on the current computer locale.
 
