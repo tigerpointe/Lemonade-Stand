@@ -157,7 +157,7 @@ def start_lemonade(celsius=False, nowait=False):
          'lemons' : 0,
          'sugar'  : 0,
          'cash'   : 30.00,
-         'start'  : 0
+         'start'  : 0.00
     }
     inventory = SimpleNamespace(**inventoryd)
     inventory.start = inventory.cash
