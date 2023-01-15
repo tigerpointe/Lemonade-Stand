@@ -285,7 +285,8 @@ while ($weeks.current -le $weeks.total)
         $inventory.cups = $inventory.cups + ($newcups * $cups.count);
         $inventory.cash = $inventory.cash - $cost; 
         "  Purchased $newcups box(es) of cups for $($cost.ToString("C2"))";
-        "  $($inventory.cash.ToString("C2")) remaining";
+        "  $($inventory.cups) cup inventory, " + `
+          "$($inventory.cash.ToString("C2")) cash remaining";
       }
       else
       {
@@ -316,7 +317,8 @@ while ($weeks.current -le $weeks.total)
         $inventory.lemons = $inventory.lemons + ($newlemons * $lemons.count);
         $inventory.cash = $inventory.cash - $cost;
         "  Purchased $newlemons bag(s) of lemons for $($cost.ToString("C2"))";
-        "  $($inventory.cash.ToString("C2")) remaining";
+        "  $($inventory.lemons) lemon inventory, " + `
+          "$($inventory.cash.ToString("C2")) cash remaining";
       }
       else
       {
@@ -347,7 +349,8 @@ while ($weeks.current -le $weeks.total)
         $inventory.sugar = $inventory.sugar + ($newsugar * $sugar.count);
         $inventory.cash = $inventory.cash - $cost;
         "  Purchased $newsugar bag(s) of sugar for $($cost.ToString("C2"))";
-        "  $($inventory.cash.ToString("C2")) remaining";
+        "  $($inventory.sugar) sugar inventory, " + `
+          "$($inventory.cash.ToString("C2")) cash remaining";
       }
       else
       {
@@ -439,10 +442,10 @@ while ($weeks.current -le $weeks.total)
   "`nWeekly Sales Summary";
   for ($i = 0; $i -lt $weeks.summary.Count; $i++)
   {
-    ("  Week $(($i + 1).ToString().PadLeft($padWeek)):  " + `
-     "$($weeks.summary[$i]["sales"].ToString().PadLeft($padSale)) sold x " + `
-     "$(($weeks.summary[$i]["price"]).ToString("C2")) ea.");
-     $total = $total + $weeks.summary[$i]["sales"];
+    "  Week $(($i + 1).ToString().PadLeft($padWeek)):  " + `
+      "$($weeks.summary[$i]["sales"].ToString().PadLeft($padSale)) sold x " + `
+      "$(($weeks.summary[$i]["price"]).ToString("C2")) ea.";
+    $total = $total + $weeks.summary[$i]["sales"];
   }
 
   # Increment the week number

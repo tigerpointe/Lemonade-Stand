@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-"""Lemonade
+﻿#!/usr/bin/env python3
+"""A module for simulating a lemonade stand.
 
 To start the module from the REPL, import using:
     >>> from lemonade import start_lemonade
@@ -315,7 +315,7 @@ def start_lemonade(celsius=False, nowait=False):
         newcups = -1
         while (newcups < 0):
             try:
-                newcups = int(input("How many boxes of cups to buy? "))
+                newcups = int(input("How many boxes of cups to buy? ") or 0)
                 if (newcups > 0):
                     cost = newcups * cups.cost
                     if (cost > inventory.cash):
@@ -326,8 +326,9 @@ def start_lemonade(celsius=False, nowait=False):
                           " box(es) of cups for " + \
                           locale.currency(cost, grouping=True))
                     print("  " + \
+                          str(inventory.cups) + " cup inventory, "  + \
                           locale.currency(inventory.cash, grouping=True) + \
-                          " remaining")
+                          " cash remaining")
                 else:
                     print("  No additional cups were purchased")
             except Exception as e:
@@ -338,7 +339,7 @@ def start_lemonade(celsius=False, nowait=False):
         newlemons = -1
         while (newlemons < 0):
             try:
-                newlemons = int(input("How many bags of lemons to buy? "))
+                newlemons = int(input("How many bags of lemons to buy? ") or 0)
                 if (newlemons > 0):
                     cost = newlemons * lemons.cost
                     if (cost > inventory.cash):
@@ -349,8 +350,9 @@ def start_lemonade(celsius=False, nowait=False):
                           " bag(s) of lemons for " + \
                           locale.currency(cost, grouping=True))
                     print("  " + \
+                          str(inventory.lemons) + " lemon inventory, "  + \
                           locale.currency(inventory.cash, grouping=True) + \
-                          " remaining")
+                          " cash remaining")
                 else:
                     print("  No additional lemons were purchased")
             except Exception as e:
@@ -361,7 +363,7 @@ def start_lemonade(celsius=False, nowait=False):
         newsugar = -1
         while (newsugar < 0):
             try:
-                newsugar = int(input("How many bags of sugar to buy? "))
+                newsugar = int(input("How many bags of sugar to buy? ") or 0)
                 if (newsugar > 0):
                     cost = newsugar * sugar.cost
                     if (cost > inventory.cash):
@@ -372,8 +374,9 @@ def start_lemonade(celsius=False, nowait=False):
                           " bag(s) of sugar for " + \
                           locale.currency(cost, grouping=True))
                     print("  " + \
+                          str(inventory.sugar) + " sugar inventory, "  + \
                           locale.currency(inventory.cash, grouping=True) + \
-                          " remaining")
+                          " cash remaining")
                 else:
                     print("  No additional sugar was purchased")
             except Exception as e:
@@ -385,7 +388,7 @@ def start_lemonade(celsius=False, nowait=False):
         while (price <= 0):
             try:
                 raw   = input("How much should the lemonade cost? ")
-                price = float(re.sub("[^0-9.]", "", raw))
+                price = float(re.sub("[^0-9.]", "", raw) or 0.00)
                 if (price <= 0):
                     raise Exception("The price must be greater than zero.")
             except Exception as e:
