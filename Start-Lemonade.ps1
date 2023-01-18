@@ -66,6 +66,7 @@ If you enjoy this software, please do something kind for free.
 
 History:
 01.00 2023-Jan-07 Scott S. Initial release.
+01.01 2023-Jan-18 Scott S. Removed extra parenthesis from calculations.
 
 .LINK
 https://en.wikipedia.org/wiki/Lemonade_Stand
@@ -196,7 +197,7 @@ while ($weeks.current -le $weeks.total)
 
   # Generate a random weather forecast and temperature
   $temperature.forecast = `
-    (Get-Random -Minimum 0 -Maximum ($forecast.Keys.Count));
+    (Get-Random -Minimum 0 -Maximum $forecast.Keys.Count);
   $temperature.value = `
     (Get-Random -Minimum $temperature.min -Maximum $temperature.max);
   $formatted = $temperature.value.ToString("N0");
@@ -213,7 +214,7 @@ while ($weeks.current -le $weeks.total)
   # (lower temperature = fewer sales, severe weather = fewer sales)
   $potential = [Math]::Floor($weeks.sales * `
                              ($temperature.value / 100) * `
-                             $($forecast[$temperature.forecast][0]));
+                             ($forecast[$temperature.forecast][0]));
   $buffer[4] = "Estimated Sales:   $potential cups";
 
   # Update the cups cost
