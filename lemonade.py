@@ -21,8 +21,14 @@ Currency units are selected based on the current computer locale.
 
 Please consider giving to cancer research.
 
+.PARAMETER title
+Specifies an alternate title for the lemonade stand.
+
 .PARAMETER celsius
 When True, displays the temperature as Celsius.
+
+.PARAMETER noglyphs
+When True, the weather glyphs will not be displayed.
 
 .PARAMETER nowait
 When True, skips the "now serving" wait loop.
@@ -38,8 +44,18 @@ start_lemonade()
 Starts a new lemonade stand.
 
 .EXAMPLE 
+start_lemonade(title="Penny's Lemonade")
+Starts a new lemonade stand, with an alternate title value.
+The title value can be up to 30 characters in length.
+
+.EXAMPLE 
 start_lemonade(celsius=True)
 Starts a new lemonade stand, using Celsius as the temperature scale.
+
+.EXAMPLE 
+start_lemonade(noglyphs=True)
+Starts a new lemonade stand, without displaying the weather glyphs.
+Older console windows may not fully support these UTF8 encoded characters.
 
 .EXAMPLE 
 start_lemonade(nowait=True)
@@ -68,10 +84,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+Most console windows support UTF8 encoding.  If you do not see the weather
+glyphs (such as the clouds, rain or sun), your console window most likely does
+not have UTF8 encoding enabled.  Be sure to start the game with the "noglyphs"
+option enabled to avoid displaying the invalid character symbols. 
+
+Dedicated to fond memories of "Lemonade Stand" on the Commodore 64.
 If you enjoy this software, please do something kind for free.
 
 History:
 01.00 2023-Jan-07 Scott S. Initial release.
+01.01 2023-Jan-18 Scott S. Removed extra parenthesis from calculations.
+02.00 2023-Jan-22 Scott S. Revised sales calculation, added best price.
 
 .LINK
 https://en.wikipedia.org/wiki/Lemonade_Stand
@@ -86,10 +110,10 @@ https://braintumor.org/
 https://www.cancer.org/
 """
 
-from collections import OrderedDict
+from collections import OrderedDict   # ordered dictionaries
 from os import system, name           # operating system specific
 from random import randrange, uniform # random numbers
-from types import SimpleNamespace     # namespaces
+from types import SimpleNamespace     # namespaces support
 
 import locale # culture specific locale
 import math   # math functions
@@ -133,13 +157,29 @@ def clear():
         _ = system('cls')   # Microsoft Windows
     else:
         _ = system('clear') # All others
-        
-        
-def start_lemonade(celsius=False, nowait=False):
+
+
+def get_sales_amount(potential, unit, price):
+    """Gets the sales amount.
+    Multiply the potential sales by a ratio of unit cost to actual price; the
+    exponent results in the values falling along a curve, rather than along a
+    straight line, resulting in more realistic sales values at each price.
+    Parameters
+    potential : Potential sales
+    unit      : Unit cost
+    price     : Actual price
+    """
+    return math.floor(potential * (unit / (price ** 1.5)))
+
+
+def start_lemonade(title="Lemonade Stand", celsius=False, \
+                   noglyphs=False, nowait=False):
     """Starts a new lemonade stand.
     Parameters
-    celsius : Use Celsius as the temperature scale
-    nowait  : Skip the "now serving" wait loop
+    title    : Specifies the title of the lemonade stand
+    celsius  : Use Celsius as the temperature scale
+    noglyphs : Do not display the weather glyphs (limited UTF8 console support)
+    nowait   : Skip the "now serving" wait loop
     """
     
     # Get the ASCII art information
@@ -153,11 +193,11 @@ def start_lemonade(celsius=False, nowait=False):
 
     # Inventory data (contains the item levels)
     inventoryd = {
-         'cups'   : 0,
-         'lemons' : 0,
-         'sugar'  : 0,
-         'cash'   : 30.00,
-         'start'  : 0.00
+        'cups'   : 0,
+        'lemons' : 0,
+        'sugar'  : 0,
+        'cash'   : 30.00,
+        'start'  : 0.00
     }
     inventory = SimpleNamespace(**inventoryd)
     inventory.start = inventory.cash
@@ -201,13 +241,13 @@ def start_lemonade(celsius=False, nowait=False):
     }
     weeks = SimpleNamespace(**weeksd)
 
-    # Forecast data (includes percentage values and display names)
+    # Forecast data (includes percentage values, UTF8 glyphs and display names)
     forecastd = OrderedDict()
-    forecastd['sunny']  = [1.00, "Sunny"]
-    forecastd['partly'] = [0.90, "Partly Sunny"]
-    forecastd['cloudy'] = [0.70, "Mostly Cloudy"]
-    forecastd['rainy']  = [0.40, "Rainy"]
-    forecastd['stormy'] = [0.10, "Stormy"]
+    forecastd['sunny']  = [1.00, 0x2600, "Sunny"]
+    forecastd['partly'] = [0.90, 0x26C5, "Partly Sunny"]
+    forecastd['cloudy'] = [0.70, 0x2601, "Mostly Cloudy"]
+    forecastd['rainy']  = [0.40, 0x2602, "Rainy"]
+    forecastd['stormy'] = [0.10, 0x26C8, "Stormy"]
 
     # Temperature data (uses Fahrenheit as the percentage values)
     temperatured = {
@@ -218,10 +258,25 @@ def start_lemonade(celsius=False, nowait=False):
         'value'    : None
     }
     temperature = SimpleNamespace(**temperatured)
-    
+
+    # Score data (based on actual vs. maximum net sales)
+    scored = {
+        'value' : 0.00,
+        'total' : 0.00
+    }
+    score = SimpleNamespace(**scored)
+
+    # Sanity check the title
+    if (title is None) or (len(title.strip()) < 1):
+        title = ""
+    elif (len(title.strip()) > 30):
+        title = title.strip()[0:30] + "... "
+    else:
+        title = title.strip() + " "
+
     # Check for Celsius
     if (celsius):
-      temperature.units = celsius_unit
+        temperature.units = celsius_unit
 
     # Start the main loop
     while (weeks.current <= weeks.total):
@@ -232,7 +287,7 @@ def start_lemonade(celsius=False, nowait=False):
  
         # Display the current week number
         buffer[0] = ""
-        buffer[1] = "Lemonade Stand Week #" + str(weeks.current)
+        buffer[1] = title + "Week #" + str(weeks.current)
 
         # Generate a random weather forecast and temperature
         temperature.forecast = randrange(0, len(forecastd))
@@ -240,10 +295,14 @@ def start_lemonade(celsius=False, nowait=False):
         formatted = str(temperature.value)
         if (temperature.units == celsius_unit):
             formatted = str(round(((temperature.value - 32) * (5/9))))
+        glyph = ""
+        if (not noglyphs):
+            glyph = chr(forecastd[list(forecastd)[temperature.forecast]][1])
         buffer[2] = ""
         buffer[3] = "Weather Forecast:  " + \
                     formatted + temperature.units + " " + \
-                    forecastd[list(forecastd)[temperature.forecast]][1]
+                    forecastd[list(forecastd)[temperature.forecast]][2] + \
+                    " " + glyph
 
         # Calculate the potential sales as a percentage of the maximum value
         # (lower temperature = fewer sales, severe weather = fewer sales)
@@ -385,11 +444,11 @@ def start_lemonade(celsius=False, nowait=False):
 
         # Read the actual price
         price = 0.00
-        while (price <= 0):
+        while (price <= 0.00):
             try:
                 raw   = input("How much should the lemonade cost? ")
-                price = float(re.sub("[^0-9.]", "", raw) or 0.00)
-                if (price <= 0):
+                price = float(re.sub("[^0-9.-]", "", raw) or 0.00)
+                if (price <= 0.00):
                     raise Exception("The price must be greater than zero.")
             except Exception as e:
                 print("  " + str(e))
@@ -399,10 +458,10 @@ def start_lemonade(celsius=False, nowait=False):
 
         # Calculate the weekly sales based on price and lowest inventory level
         # (higher markup price = fewer sales, limited by the inventory on-hand)
-        sales = math.floor(potential * (unit / price))
-        sales = min(potential, sales, \
-                    inventory.cups, inventory.lemons, \
-                    inventory.sugar) # "min" returns lowest value
+        sales  = get_sales_amount(potential, unit, price)
+        sales  = min(potential, sales, \
+                     inventory.cups, inventory.lemons, \
+                     inventory.sugar) # "min" returns lowest value
         margin = price - unit
         gross  = sales * price
         net    = sales * margin
@@ -415,7 +474,7 @@ def start_lemonade(celsius=False, nowait=False):
             print("\nNow Serving:")
             for i in range(sales):
                 print(". ", end="", flush=True)
-                time.sleep(randrange(500, 2000) / 1000)
+                time.sleep(randrange(250, 1500) / 1000) # convert milliseconds
             print()
                 
         # Update the inventory levels to reflect consumption
@@ -465,13 +524,61 @@ def start_lemonade(celsius=False, nowait=False):
                   " ea.")
             total = total + weeks.summary[i]['sales']
 
+        # Loop through a range of prices to find the highest net profit
+        maxsales = 0
+        maxprice = 0.00
+        maxgross = 0.00
+        maxnet   = 0.00
+        minnet   = net
+        for i in range(25, 2500, 25):
+            price  = i / 100 # range uses integers, not currency (floats)
+            sales  = get_sales_amount(potential, unit, price)
+            margin = price - unit
+            gross  = sales * price
+            net    = sales * margin
+            if (sales  >  0) and \
+                (sales <= potential) and \
+                (unit  <= price):
+                    if (net > maxnet):
+                        maxsales = sales
+                        maxprice = price
+                        maxgross = gross
+                        maxnet   = net
+        if (maxnet > minnet):
+            print("\nYour sales could have been:")
+            print("  " + str(maxsales) + " sold x " + \
+                  locale.currency(maxprice, grouping=True) + \
+                  " ea. = " + \
+                  locale.currency(maxgross, grouping=True) + \
+                  " for a net profit of " + \
+                  locale.currency(maxnet, grouping=True))
+            if (inventory.cups <= 0):
+                print("  You ran out of cups.")
+            if (inventory.lemons <= 0):
+                print("  You ran out of lemons.")
+            if (inventory.sugar <= 0):
+                print("  You ran out of sugar.")
+        else:
+            print("\nCongratulations -- your sales were perfect!")
+
+        # Increment the score counters
+        score.value = score.value + minnet
+        score.total = score.total + maxnet
+
         # Increment the week number
         if (weeks.current == weeks.total):
-            print("  " + str(total) + " sold -- see you again next time!")
+            success = round((score.value / score.total) * 100)
+            print("\nYou've made " + \
+                  locale.currency(score.value, grouping=True) + \
+                  " out of a possible " + \
+                  locale.currency(score.total, grouping=True) + \
+                  " for a score of " + str(success) + "%")
+            print("You've sold " + str(total) + \
+                  " total cups -- see you again next time!")
         weeks.current = weeks.current + 1
         input("\nPress ENTER to Continue")
 
 
 # Start the module interactively
 if __name__ == "__main__":
-    start_lemonade()
+    start_lemonade(celsius=False, noglyphs=False, nowait=False)

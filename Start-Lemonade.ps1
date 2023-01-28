@@ -15,8 +15,14 @@ Currency units are selected based on the current computer locale.
 
 Please consider giving to cancer research.
 
+.PARAMETER title
+Specifies an alternate title for the lemonade stand.
+
 .PARAMETER celsius
 When present, displays the temperature as Celsius.
+
+.PARAMETER noglyphs
+When present, the weather glyphs will not be displayed.
 
 .PARAMETER nowait
 When present, skips the "now serving" wait loop.
@@ -32,8 +38,18 @@ A whole lot of fun.
 Starts a new lemonade stand.
 
 .EXAMPLE 
+.\Start-Lemonade.ps1 -title "Penny's Lemonade"
+Starts a new lemonade stand, with an alternate title value.
+The title value can be up to 30 characters in length.
+
+.EXAMPLE 
 .\Start-Lemonade.ps1 -celsius
 Starts a new lemonade stand, using Celsius as the temperature scale.
+
+.EXAMPLE 
+.\Start-Lemonade.ps1 -noglyphs
+Starts a new lemonade stand, without displaying the weather glyphs.
+Older console windows may not fully support these UTF8 encoded characters.
 
 .EXAMPLE 
 .\Start-Lemonade.ps1 -nowait
@@ -62,11 +78,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+Most console windows support UTF8 encoding.  If you do not see the weather
+glyphs (such as the clouds, rain or sun), your console window most likely does
+not have UTF8 encoding enabled.  Be sure to start the game with the "noglyphs"
+option enabled to avoid displaying the invalid character symbols.
+
+Dedicated to fond memories of "Lemonade Stand" on the Commodore 64.
 If you enjoy this software, please do something kind for free.
 
 History:
 01.00 2023-Jan-07 Scott S. Initial release.
 01.01 2023-Jan-18 Scott S. Removed extra parenthesis from calculations.
+02.00 2023-Jan-22 Scott S. Revised sales calculation, added best price.
 
 .LINK
 https://en.wikipedia.org/wiki/Lemonade_Stand
@@ -86,8 +109,14 @@ https://www.cancer.org/
 param
 (
 
+    # Specifies the title of the lemonade stand
+    [string]$title = "Lemonade Stand"
+
     # Use Celsius as the temperature scale
-    [switch]$celsius
+  , [switch]$celsius
+
+    # Do not display the weather glyphs (limited UTF8 console support)
+  , [switch]$noglyphs
 
     # Skip the "now serving" wait loop
   , [switch]$nowait
@@ -161,13 +190,13 @@ $weeks.total   = 12;  # span the 12 weeks of Summer
 $weeks.sales   = 99;  # 99 maximum sales per week
 $weeks.summary = @(); # empty array
 
-# Forecast data (includes percentage values and display names)
+# Forecast data (includes percentage values, UTF8 glyphs and display names)
 $forecast = [ordered]@{};
-$forecast.sunny  = @(1.00, "Sunny");
-$forecast.partly = @(0.90, "Partly Sunny");
-$forecast.cloudy = @(0.70, "Mostly Cloudy");
-$forecast.rainy  = @(0.40, "Rainy");
-$forecast.stormy = @(0.10, "Stormy");
+$forecast.sunny  = @(1.00, 0x2600, "Sunny");
+$forecast.partly = @(0.90, 0x26C5, "Partly Sunny");
+$forecast.cloudy = @(0.70, 0x2601, "Mostly Cloudy");
+$forecast.rainy  = @(0.40, 0x2602, "Rainy");
+$forecast.stormy = @(0.10, 0x26C8, "Stormy");
 
 # Temperature data (uses Fahrenheit as the percentage values)
 $temperature = @{};
@@ -176,6 +205,39 @@ $temperature.max      = 100;
 $temperature.units    = $FahrenheitUnit;
 $temperature.forecast = $null;
 $temperature.value    = $null;
+
+# Score data (based on actual vs. maximum net sales)
+$score = @{};
+$score.value = 0.00;
+$score.total = 0.00;
+
+# Gets the sales amount
+# Multiply the potential sales by a ratio of unit cost to actual price; the
+# exponent results in the values falling along a curve, rather than along a
+# straight line, resulting in more realistic sales values at each price
+function Get-SalesAmount
+{
+  param(
+      [int]$potential # potential sales
+    , [decimal]$unit  # unit cost
+    , [decimal]$price # actual price
+  )
+  return [Math]::Floor($potential * ($unit / [Math]::Pow($price, 1.5)));
+}
+
+# Sanity check the title
+if ([String]::IsNullOrWhiteSpace($title))
+{
+  $title = "";
+}
+elseif ($title.Trim().Length -gt 30)
+{
+  $title = "$($title.Trim().Substring(0, 30))... ";
+}
+else
+{
+  $title = "$($title.Trim()) ";
+}
 
 # Check for Celsius
 if ($celsius.IsPresent)
@@ -193,7 +255,7 @@ while ($weeks.current -le $weeks.total)
 
   # Display the current week number
   $buffer[0] = "";
-  $buffer[1] = "Lemonade Stand Week #$($weeks.current)";
+  $buffer[1] = "$($title)Week #$($weeks.current)";
 
   # Generate a random weather forecast and temperature
   $temperature.forecast = `
@@ -205,10 +267,15 @@ while ($weeks.current -le $weeks.total)
   {
     $formatted = (($temperature.value -32) * (5/9)).ToString("N0");
   }
+  $glyph = "";
+  if (-not $noglyphs.IsPresent)
+  {
+    $glyph = [char]$forecast[$temperature.forecast][1];
+  }
   $buffer[2] = "";
   $buffer[3] = "Weather Forecast:  " + `
-               "$($formatted)$($temperature.units) " + `
-               "$($forecast[$temperature.forecast][1])";
+               "$formatted$($temperature.units) " + `
+               "$($forecast[$temperature.forecast][2]) $glyph";
 
   # Calculate the potential sales as a percentage of the maximum value
   # (lower temperature = fewer sales, severe weather = fewer sales)
@@ -367,12 +434,12 @@ while ($weeks.current -le $weeks.total)
 
   # Read the actual price
   [decimal]$price = 0.00;
-  while ($price -le 0)
+  while ($price -le 0.00)
   {
     try
     {
       $raw = Read-Host -Prompt "How much should the lemonade cost?";
-      [decimal]$price = ($raw -replace "[^0-9.]", ""); # strip non-numbers
+      [decimal]$price = ($raw -replace "[^0-9.-]", ""); # strip non-numbers
       if ($price -le 0.00)
       {
         throw "The price must be greater than zero.";
@@ -388,10 +455,12 @@ while ($weeks.current -le $weeks.total)
 
   # Calculate the weekly sales based on price and lowest inventory level
   # (higher markup price = fewer sales, limited by the inventory on-hand)
-  $sales = [Math]::Floor($potential * ($unit / $price));
-  $set   = @($potential, $sales, `
-             $inventory.cups, $inventory.lemons, $inventory.sugar);
-  $sales = ($set | Sort-Object -Descending | Select -Last 1); # lowest value
+  $sales  = (Get-SalesAmount -potential $potential `
+                             -unit $unit `
+                             -price $price);
+  $set    = @($potential, $sales, `
+              $inventory.cups, $inventory.lemons, $inventory.sugar);
+  $sales  = ($set | Sort-Object -Descending | Select -Last 1); # lowest value
   $margin = $price - $unit;
   $gross  = $sales * $price;
   $net    = $sales * $margin;
@@ -406,7 +475,7 @@ while ($weeks.current -le $weeks.total)
     for ($i = 0; $i -lt $sales; $i++)
     {
       Write-Host -NoNewline -Object ". ";
-      Start-Sleep -Milliseconds (Get-Random -Minimum 500 -Maximum 2000);
+      Start-Sleep -Milliseconds (Get-Random -Minimum 250 -Maximum 1500);
     }
     Write-Host;
   }
@@ -449,10 +518,61 @@ while ($weeks.current -le $weeks.total)
     $total = $total + $weeks.summary[$i]["sales"];
   }
 
+  # Loop through a range of prices to find the highest net profit
+  $maxsales = 0;
+  $maxprice = 0.00;
+  $maxgross = 0.00;
+  $maxnet   = 0.00;
+  $minnet   = $net;
+  for ($price = 0.25; $price -le 25.00; $price += 0.25)
+  {
+    $sales  = (Get-SalesAmount -potential $potential `
+                               -unit $unit `
+                               -price $price);
+    $margin = $price - $unit;
+    $gross  = $sales * $price;
+    $net    = $sales * $margin;
+    if (($sales -gt 0) -and
+        ($sales -le $potential) -and
+        ($unit  -le $price))
+    {
+      if ($net -gt $maxnet)
+      {
+        $maxsales = $sales;
+        $maxprice = $price;
+        $maxgross = $gross;
+        $maxnet   = $net;
+      }
+    }
+  }
+  if ($maxnet -gt $minnet)
+  {
+    "`nYour sales could have been:";
+    "  $($maxsales.ToString()) sold x " + `
+      "$($maxprice.ToString("C2")) ea. = " + `
+      "$($maxgross.ToString("C2")) for a net profit of " + `
+      "$($maxnet.ToString("C2"))";
+      if ($inventory.cups   -le 0) { "  You ran out of cups.";   }
+      if ($inventory.lemons -le 0) { "  You ran out of lemons."; }
+      if ($inventory.sugar  -le 0) { "  You ran out of sugar.";  }
+  }
+  else
+  {
+    "`nCongratulations -- your sales were perfect!";
+  }
+
+  # Increment the score counters
+  $score.value = $score.value + $minnet;
+  $score.total = $score.total + $maxnet;
+  
   # Increment the week number
   if ($weeks.current -eq $weeks.total)
   {
-    "  Total $total sold -- see you again next time!";
+    $success = [Math]::round(($score.value / $score.total) * 100);
+    "`nYou've made $($score.value.ToString("C2")) " + `
+      "out of a possible $($score.total.ToString("C2")) " + `
+      "for a score of $success%";
+    "You've sold $total total cups -- see you again next time!";
   }
   $weeks.current++;
   Read-Host -Prompt "`nPress ENTER to Continue";
