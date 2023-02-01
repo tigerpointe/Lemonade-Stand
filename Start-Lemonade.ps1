@@ -265,7 +265,7 @@ while ($weeks.current -le $weeks.total)
   $formatted = $temperature.value.ToString("N0");
   if ($temperature.units -eq $CelsiusUnit)
   {
-    $formatted = (($temperature.value -32) * (5/9)).ToString("N0");
+    $formatted = (($temperature.value - 32) * (5/9)).ToString("N0");
   }
   $glyph = "";
   if (-not $noglyphs.IsPresent)
@@ -548,13 +548,13 @@ while ($weeks.current -le $weeks.total)
   if ($maxnet -gt $minnet)
   {
     "`nYour sales could have been:";
-    "  $($maxsales.ToString()) sold x " + `
+    "  $maxsales sold x " + `
       "$($maxprice.ToString("C2")) ea. = " + `
       "$($maxgross.ToString("C2")) for a net profit of " + `
       "$($maxnet.ToString("C2"))";
-      if ($inventory.cups   -le 0) { "  You ran out of cups.";   }
-      if ($inventory.lemons -le 0) { "  You ran out of lemons."; }
-      if ($inventory.sugar  -le 0) { "  You ran out of sugar.";  }
+    if ($inventory.cups   -le 0) { "  You ran out of cups.";   }
+    if ($inventory.lemons -le 0) { "  You ran out of lemons."; }
+    if ($inventory.sugar  -le 0) { "  You ran out of sugar.";  }
   }
   else
   {
