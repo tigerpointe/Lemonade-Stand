@@ -532,8 +532,8 @@ while ($weeks.current -le $weeks.total)
     $margin = $price - $unit;
     $gross  = $sales * $price;
     $net    = $sales * $margin;
-    if (($sales -gt 0) -and
-        ($sales -le $potential) -and
+    if (($sales -gt 0) -and `
+        ($sales -le $potential) -and `
         ($unit  -le $price))
     {
       if ($net -gt $maxnet)
