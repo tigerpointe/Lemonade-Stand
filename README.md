@@ -19,6 +19,13 @@ Try to maximize your profits before the Summer ends.
 
 Currency units are selected based on the current computer locale.
 
+
+![Lemonade Stand](screenshot01.png)
+
+
+![Sales Report](screenshot02.png)
+
+
 ## Supported Platforms
 
 Start-Lemonade.ps1 is a PowerShell script version of the game
